@@ -9,7 +9,6 @@ const todoMainListEl = document.querySelector(".todo-items");
 const todoMainFilterEl = document.querySelector(".todo-filter");
 const todoMainFormEl = document.querySelector(".todo-creation");
 const todoMainInputEl = todoMainFormEl.querySelector("input");
-const todoStatsEl = document.querySelector(".todo-stats");
 
 // events
 window.addEventListener("DOMContentLoaded", domLoaded);

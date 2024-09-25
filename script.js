@@ -32,8 +32,7 @@ function createTodo(e) {
 
     todos.push(todo);
     saveTodosToLocalStorage();
-    const li = renderTodo({ ...todo, statusT: "active" });
-    todoMainListEl.insertAdjacentHTML("beforeend", li);
+    renderTodos();
     todoMainFormEl.reset();
     todoMainInputEl.focus();
     todoMainFilterEl.value = "all";

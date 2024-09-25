@@ -91,7 +91,7 @@ function renderTodos(filter = "all") {
 }
 
 function renderTodo({ id, text, isCompleted, createAt, statusT }) {
-    return `<li class="todo-item" data-todo-statusT="${statusT}" data-todo-id="${id}" title="${createAt}">
+    return `<li class="todo-item" data-todo-status="${statusT}" data-todo-id="${id}" title="${createAt}">
                 <input 
                     type="checkbox" ${isCompleted ? "checked" : null} 
                     name="todo-item-toggle" class="todo-toggle-button" 

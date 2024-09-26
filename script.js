@@ -113,7 +113,7 @@ function renderTodos(items = todos) {
         });
 
         //
-        completedItemsDiv.hidden = completedItems.length === 0;
+        completedItemsDiv.hidden = completedItems?.length == 0;
 
         mainItemsDiv.insertAdjacentHTML(
             "beforeend",

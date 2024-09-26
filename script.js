@@ -1,122 +1,168 @@
 const todos = [];
+console.log(todos);
 
-// stats
-let completedLength = 0;
-let activeLength = 0;
+//
+const todoCreationDiv = document.querySelector(".todo-creation");
+const todoMainForm = todoCreationDiv.querySelector("form");
+const todoMainInput = todoCreationDiv.querySelector("input");
 
-// dom elements
-const todoMainListEl = document.querySelector(".todo-items");
-const todoMainFilterEl = document.querySelector(".todo-filter");
-const todoMainFormEl = document.querySelector(".todo-creation");
-const todoMainInputEl = todoMainFormEl.querySelector("input");
+//
+window.addEventListener("click", handleTodoClick);
+todoMainForm.addEventListener("submit", createTodoItem);
+window.addEventListener("DOMContentLoaded", contentLoaded);
 
-// events
-window.addEventListener("DOMContentLoaded", domLoaded);
-document.addEventListener("click", handleTodoOptions);
-todoMainFormEl.addEventListener("submit", createTodo);
-todoMainFilterEl.addEventListener("change", filterTodo);
-
-// functions
-function createTodo(e) {
-    e.preventDefault();
-
-    const inputValue = todoMainInputEl.value.trim();
-    if (!inputValue) return false;
-
-    const todo = {
-        id: Date.now().toString(),
-        text: inputValue,
-        isCompleted: false,
-        createAt: new Date().toLocaleString(),
-    };
-
-    todos.push(todo);
-    saveTodosToLocalStorage();
-    renderTodos();
-    todoMainFormEl.reset();
-    todoMainInputEl.focus();
-    todoMainFilterEl.value = "all";
-}
-
-function deleteTodoById(id, el) {
-    const i = todos.findIndex((item) => item.id == id);
-    if (i == -1) return;
-
-    todos.splice(i, 1);
-    saveTodosToLocalStorage();
-    el.remove();
-}
-
-function toggleTodoById(id, el) {
-    const i = todos.findIndex((item) => item.id == id);
-    if (i == -1) return;
-
-    const isCompleted = !todos[i].isCompleted;
-    todos[i].isCompleted = isCompleted;
-    saveTodosToLocalStorage();
-    const statusT = isCompleted ? "completed" : "active";
-    el.dataset.todostatusT = statusT;
-}
-
-function filterTodo(e) {
-    const filter = e.target.value;
-    renderTodos(filter);
-}
-
-function handleTodoOptions(e) {
-    const target = e.target;
-    if (target.classList.contains("todo-delete-button")) {
-        const parentEl = target.parentElement;
-        const todoId = parentEl.dataset.todoId;
+//
+function handleTodoClick(e) {
+    if (e.target.classList.contains("todo-item-delete")) {
+        const parentEl = e.target.parentElement;
+        const todoId = parentEl.dataset.todo;
         deleteTodoById(todoId, parentEl);
     }
-
-    if (target.classList.contains("todo-toggle-button")) {
-        const parentEl = target.parentElement;
-        const todoId = parentEl.dataset.todoId;
+    if (e.target.classList.contains("todo-item-check")) {
+        const parentEl = e.target.parentElement;
+        const todoId = parentEl.dataset.todo;
         toggleTodoById(todoId, parentEl);
     }
 }
 
-function renderTodos(filter = "all") {
-    todoMainListEl.innerHTML = "";
+function createTodoItem(e) {
+    e.preventDefault();
+    const inputValue = todoMainInput.value.trim();
 
-    todos.forEach((todo) => {
-        const statusT = todo.isCompleted ? "completed" : "active";
-        if (filter === statusT || filter === "all") {
-            const li = renderTodo({ ...todo, statusT: statusT });
-            todoMainListEl.insertAdjacentHTML("beforeend", li);
+    if (inputValue) {
+        const todo = {
+            id: Date.now().toString(),
+            text: inputValue,
+            completed: false,
+            createdAt: new Date().toLocaleString(),
+        };
+        todos.push(todo);
+        saveTodos();
+        renderTodos([todo]);
+        todoMainForm.reset();
+        todoMainInput.focus();
+    } else {
+        console.log("Creating failed");
+        return;
+    }
+}
+
+function deleteTodoById(id, item) {
+    const index = todos.findIndex((todo) => todo.id === id);
+    if (index > -1) {
+        todos.splice(index, 1);
+        saveTodos();
+        item.remove();
+    } else {
+        console.log("Deleting failed");
+        return;
+    }
+}
+
+function toggleTodoById(id, item) {
+    const index = todos.findIndex((todo) => todo.id === id);
+    if (index > -1) {
+        if (todos[index].completed) {
+            todos[index].completed = false;
+            saveTodos();
+            item.remove();
+            renderTodos([todos[index]]);
+        } else {
+            todos[index].completed = true;
+            saveTodos();
+            item.remove();
+            renderTodos([todos[index]]);
         }
-    });
+    } else {
+        console.log("Toggling failed");
+        return;
+    }
 }
 
-function renderTodo({ id, text, isCompleted, createAt, statusT }) {
-    return `<li class="todo-item" data-todo-status="${statusT}" data-todo-id="${id}" title="${createAt}">
-                <input 
-                    type="checkbox" ${isCompleted ? "checked" : null} 
-                    name="todo-item-toggle" class="todo-toggle-button" 
-                />
-                <span>${text}</span>
-                <button type="button" class="todo-delete-button">
-                    <span class="material-symbols-outlined"> delete </span>
-                </button>
-                <button type="button" class="todo-update-button">
-                    <span class="material-symbols-outlined"> check </span>
-                </button>
-            </li>`;
+function renderTodos(items = todos) {
+    if (items.length === 0) return;
+
+    const mainItemsDiv = document.querySelector(".todo-items");
+    const completedItemsDiv = document.querySelector(".todo-completed");
+
+    if (items.length == 1) {
+        //
+        if (items[0].completed) {
+            completedItemsDiv.insertAdjacentHTML(
+                "beforeend",
+                items.map(getTodoHTML).join("\n")
+            );
+        } else {
+            mainItemsDiv.insertAdjacentHTML(
+                "beforeend",
+                items.map(getTodoHTML).join("\n")
+            );
+        }
+    } else {
+        //
+        const completedItems = [];
+        const activeItems = [];
+
+        //
+        items.map((todo) => {
+            if (todo.completed) {
+                completedItems.push(todo);
+            } else {
+                activeItems.push(todo);
+            }
+        });
+
+        //
+        completedItemsDiv.hidden = completedItems.length === 0;
+
+        mainItemsDiv.insertAdjacentHTML(
+            "beforeend",
+            activeItems.map(getTodoHTML).join("\n")
+        );
+
+        completedItemsDiv.insertAdjacentHTML(
+            "beforeend",
+            completedItems.map(getTodoHTML).join("\n")
+        );
+    }
 }
 
-function domLoaded() {
-    todos.push(...getTodosFromLocalStorage());
+function getTodoHTML(todo, index) {
+    const { id, text, completed, createdAt } = todo;
+    const todoStatus = completed ? "completed" : "active";
+
+    return `<div 
+                class="todo-item" 
+                data-todo="${id}" 
+                data-todo-status="${todoStatus}" 
+                title="${createdAt}"
+            >
+            <span class="todo-item-count">${index + 1}</span>
+            <input 
+                type="checkbox" 
+                class="todo-item-check" 
+                name="todo-item-status" 
+                ${completed ? "checked" : null} 
+            />
+            <span class="todo-item-text">${text}</span>
+            <button class="todo-item-delete">Delete</button>
+            </div>`;
+}
+
+//
+function contentLoaded() {
+    todos.push(...getTodos());
+    console.log(todos);
     renderTodos();
 }
 
-function getTodosFromLocalStorage() {
-    const todosJSON = localStorage.getItem("todos");
-    return todosJSON ? JSON.parse(todosJSON) : [];
+//
+function getTodos() {
+    const storedTodos = localStorage.getItem("todos");
+    return storedTodos ? JSON.parse(storedTodos) : [];
 }
 
-function saveTodosToLocalStorage() {
+function saveTodos() {
     const todosJSON = JSON.stringify(todos);
     localStorage.setItem("todos", todosJSON);
 }
